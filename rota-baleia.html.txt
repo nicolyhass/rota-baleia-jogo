@@ -1,0 +1,1839 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Rota da Baleia-Jubarte</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+        body {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Press Start 2P', monospace;
+            background: #0f0f23;
+            min-height: 100%;
+            overflow-x: hidden;
+            position: relative;
+            image-rendering: pixelated;
+        }
+
+        html { height: 100%; }
+
+        /* Efeito de pixels flutuantes */
+        .bubbles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+        .bubble {
+            position: absolute;
+            background: #00ffff;
+            width: 4px;
+            height: 4px;
+            border-radius: 0;
+            animation: pixelFloat 4s infinite linear;
+            box-shadow: 0 0 2px #00ffff;
+        }
+        @keyframes pixelFloat {
+            0% { transform: translateY(100vh); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-50px); opacity: 0; }
+        }
+
+        /* Fundo pixelizado */
+        .waves {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            background: repeating-linear-gradient(
+                90deg,
+                #1a1a3a 0px,
+                #1a1a3a 8px,
+                #2a2a4a 8px,
+                #2a2a4a 16px
+            );
+            animation: pixelScroll 2s linear infinite;
+            z-index: 1;
+        }
+        @keyframes pixelScroll { 0% { transform: translateX(0); } 100% { transform: translateX(16px); } }
+
+        .container {
+            position: relative;
+            z-index: 10;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        /* Tela inicial */
+        .start-screen {
+            text-align: center;
+            color: white;
+            max-width: 600px;
+        }
+        .start-screen h1 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            color: #00ffff;
+            text-shadow: 2px 2px 0px #0066cc, 4px 4px 0px #003366;
+            animation: titleGlow 2s ease-in-out infinite alternate;
+            letter-spacing: 2px;
+        }
+        @keyframes titleGlow {
+            0% { color: #00ffff; text-shadow: 2px 2px 0px #0066cc, 4px 4px 0px #003366; }
+            100% { color: #66ffff; text-shadow: 2px 2px 0px #0088ff, 4px 4px 0px #004488; }
+        }
+
+        .whale-icon {
+            font-size: 4rem;
+            margin: 20px 0;
+            animation: pixelSwim 1s steps(2) infinite;
+            filter: drop-shadow(2px 2px 0px #0066cc);
+        }
+        @keyframes pixelSwim { 0% { transform: translateX(0); } 50% { transform: translateX(4px); } 100% { transform: translateX(0); } }
+
+        .start-description {
+            font-size: 0.7rem;
+            line-height: 1.8;
+            margin-bottom: 30px;
+            background: #1a1a3a;
+            padding: 20px;
+            border: 3px solid #00ffff;
+            border-radius: 0;
+            color: #ffffff;
+            box-shadow: inset 0 0 10px rgba(0,255,255,0.2);
+        }
+
+        .start-btn {
+            background: #ff6600;
+            color: #ffffff;
+            border: 3px solid #ffaa00;
+            padding: 15px 30px;
+            font-size: 0.8rem;
+            font-family: 'Press Start 2P', monospace;
+            border-radius: 0;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            box-shadow: 4px 4px 0px #cc4400;
+            text-transform: uppercase;
+        }
+        .start-btn:hover { background: #ffaa00; transform: translate(2px, 2px); box-shadow: 2px 2px 0px #cc4400; }
+        .start-btn:active { transform: translate(4px, 4px); box-shadow: 0px 0px 0px #cc4400; }
+
+        /* Tela do jogo */
+        .game-screen {
+            display: none;
+            width: 100%;
+            max-width: 800px;
+            color: white;
+        }
+        .game-header { text-align: center; margin-bottom: 30px; }
+        .phase-title {
+            font-size: 1rem;
+            margin-bottom: 10px;
+            color: #00ffff;
+            text-shadow: 2px 2px 0px #0066cc;
+            text-align: center;
+            letter-spacing: 1px;
+        }
+        .progress-container {
+            background: #1a1a3a;
+            border: 2px solid #00ffff;
+            border-radius: 0;
+            padding: 8px;
+            margin-bottom: 20px;
+        }
+        .progress-bar {
+            background: repeating-linear-gradient(
+                90deg,
+                #00ff00 0px,
+                #00ff00 4px,
+                #00cc00 4px,
+                #00cc00 8px
+            );
+            height: 16px;
+            border-radius: 0;
+            transition: width 0.3s steps(10);
+            position: relative;
+            border: 1px solid #00aa00;
+        }
+        .whale-progress {
+            position: absolute;
+            right: -12px;
+            top: -8px;
+            font-size: 1.5rem;
+            animation: pixelBob 0.8s steps(2) infinite;
+            filter: drop-shadow(1px 1px 0px #0066cc);
+        }
+        @keyframes pixelBob { 0% { transform: translateY(0); } 50% { transform: translateY(-2px); } 100% { transform: translateY(0); } }
+
+        .question-container {
+            background: #1a1a3a;
+            border: 3px solid #00ffff;
+            border-radius: 0;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: inset 0 0 10px rgba(0,255,255,0.2);
+        }
+        .question {
+            font-size: 0.8rem;
+            margin-bottom: 25px;
+            line-height: 1.6;
+            color: #ffffff;
+            text-align: center;
+        }
+        .options { display: grid; gap: 15px; }
+        .option {
+            background: #2a2a4a;
+            border: 2px solid #666699;
+            color: #ffffff;
+            padding: 12px 16px;
+            border-radius: 0;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            font-size: 0.7rem;
+            font-family: 'Press Start 2P', monospace;
+            text-align: left;
+            margin-bottom: 8px;
+            box-shadow: 2px 2px 0px #1a1a3a;
+        }
+        .option:hover { background: #3a3a5a; border-color: #8888bb; transform: translate(1px, 1px); box-shadow: 1px 1px 0px #1a1a3a; }
+        .option.correct {
+            background: #00aa00;
+            border-color: #00ff00;
+            color: #ffffff;
+            animation: pixelBlink 0.5s steps(2) 3;
+        }
+        .option.incorrect {
+            background: #aa0000;
+            border-color: #ff0000;
+            color: #ffffff;
+            animation: pixelShake 0.5s steps(4) 2;
+        }
+        @keyframes pixelBlink { 0%, 100% { background: #00aa00; } 50% { background: #00ff00; } }
+        @keyframes pixelShake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-2px); } 75% { transform: translateX(2px); } }
+
+        .feedback {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 0;
+            font-size: 0.7rem;
+            line-height: 1.6;
+            display: none;
+            font-family: 'Press Start 2P', monospace;
+            border: 2px solid;
+        }
+        .feedback.correct {
+            background: #003300;
+            border-color: #00ff00;
+            color: #00ff00;
+            box-shadow: inset 0 0 10px rgba(0,255,0,0.2);
+        }
+        .feedback.incorrect {
+            background: #330000;
+            border-color: #ff0000;
+            color: #ff6666;
+            box-shadow: inset 0 0 10px rgba(255,0,0,0.2);
+        }
+
+        .next-btn {
+            background: #6600cc;
+            color: #ffffff;
+            border: 2px solid #9933ff;
+            padding: 10px 20px;
+            border-radius: 0;
+            cursor: pointer;
+            font-size: 0.7rem;
+            font-family: 'Press Start 2P', monospace;
+            margin-top: 15px;
+            transition: all 0.1s ease;
+            box-shadow: 2px 2px 0px #4400aa;
+            text-transform: uppercase;
+        }
+        .next-btn:hover { background: #9933ff; transform: translate(1px, 1px); box-shadow: 1px 1px 0px #4400aa; }
+
+        /* Tela de narrativa */
+        .narrative-screen { display: none; text-align: center; color: white; max-width: 600px; }
+        .narrative-content {
+            background: #1a1a3a;
+            padding: 25px;
+            border: 3px solid #00ffff;
+            border-radius: 0;
+            box-shadow: inset 0 0 15px rgba(0,255,255,0.2);
+            margin-bottom: 30px;
+        }
+        .narrative-title {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: #00ffff;
+            text-shadow: 2px 2px 0px #0066cc;
+            letter-spacing: 1px;
+        }
+
+        /* ===== NOVO: mapa embutido (pixel-retro) ===== */
+        /* A globe area com background em SVG embutido em base64 */
+        .globe-animation {
+            width: 95vw;
+            max-width: 900px;
+            height: 60vh;
+            min-height: 400px;
+            margin: 20px auto;
+            position: relative;
+            border: 4px solid #ffffff;
+            border-radius: 0;
+            /* svg embase64 abaixo (pixel / retrô) */
+            background: url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOTAwIiBoZWlnaHQ9IjUwMCIgdmlld0JveD0iMCAwIDkwMCA1MDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjkwMCIgaGVpZ2h0PSI1MDAiIGZpbGw9IiM1NTk5ZmYiIC8+PGcgZmlsbD0ibm9uZSIgZmlsbC1ydWxlPSJldmVub2RkIj48cmVjdCB4PSIwIiB5PSIyMCIgd2lkdGg9IjkwMCIgaGVpZ2h0PSI0NjAiIGZpbGw9IiMzMzdhZDYiIC8+PC9nPjxnIGZpbGw9IiMyMmFhMjIiIHN0cm9rZT0iIzIwMDYiIHN0cm9rZS13aWR0aD0iMSI+CiAgICA8cG9seWdvbiBwb2ludHM9IjE2MCAzNDAgMTc1IDMyMCAxOTAgMzA1IDIxNSAzMDAgMjQ1IDI4MCAyNzAgMjc1IDI5MCAyNzAgMzIxIDI3MCAzNTAgMjc1IDM3NSA0MDAgMzgwIDQyMCAzNTAgNDQwIDMxNSA0NTAgMjkwIDQ1MCAyNjAgNDQwIDIzMCA0MTAgMjAwIDM3MCAxNzAgMzQwIiAvPgogICAgPHBvbHlnb24gcG9pbnRzPSI0NDAgMTIwIDQ2MCAxMDAgNDgwIDg1IDUxMCA3MCA1NDAgNjUgNTY1IDcwIDU5MCA4MCA2MjAgMTAwIDY1MCAxMzAgNjgzIDE2MCA3MDAgMTg1IDY1MCAyMDAgNjE1IDIxNSA1NzAgMjQ1IDU0MCAyNzAgNTIxIDI5MCA1MDAgMzE1IDQ3MCAzNDAgNDUwIDM3MCA0MjAgMzQwIDQ0MCAzMzAiIC8+CiAgICA8cG9seWdvbiBwb2ludHM9IjEyMCAzNjAgMTQwIDM1MCAxNjAgMzQwIDE5MCAzMjAgMjE1IDMxMCAyNTAgMzAwIDI3NSAyODAgMjk1IDI4MCAzMjAgMjgwIDM1NSAyNjAgMzcwIDIyMCAzODYgMTkwIDM5MCAxNzAiIC8+CiAgICA8cG9seWdvbiBwb2ludHM9IjgwMCAzNDAgNzgwIDM1MCA3NTAgMzcwIDczMCAzODAgNzAwIDM5MCA2NzAgNDAwIDY1MCA0MDUgNjIwIDQxNSA1ODAgNDMwIDU1MCA0NDAgNTMwIDQ1MCA1MDAgNDcwIDQ3MCA0NTAgNDUwIDQyMCIgLz4KICAgIDxwYXRoIGQ9Ik0yODAgNTAiIGZpbGw9IiMyMmFhMjIiIC8+CiAgPC9nPjxwYXRoIGQ9Ik0wIDQ2MGMwIDAgMTEwLTIwIDMwMC0yMGMxOTAgMCAzMDAgMjAgMzAwIDIwIiBmaWxsPSIjZmZmIiBvcGFjaXR5PSIuMDIiIC8+PHRleHQgeD0iMTAwIiB5PSI0NzAiIGZvbnQtc2l6ZT0iMTRweCIgZmlsbD0iI2ZmZiI+Um90YSBkYSBCYWxlaWEtSnViYXJ0ZTwvdGV4dD48L3N2Zz4=") center/cover no-repeat;
+            overflow: hidden;
+            box-shadow:
+                0 0 20px rgba(255,255,255,0.8),
+                inset 0 0 0 2px #000000;
+            image-rendering: pixelated;
+        }
+
+        .globe-content {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+            /* background image now defined on .globe-animation to keep content centered */
+        }
+
+        /* Hide old continent element strategy (no longer used) */
+        .continent { display: none; }
+
+        /* Nuvens pixelizadas estilo videogame */
+        .clouds {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background:
+                radial-gradient(circle at 20% 15%, #ffffff 0%, #ffffff 8px, transparent 12px),
+                radial-gradient(circle at 70% 20%, #ffffff 0%, #ffffff 6px, transparent 10px),
+                radial-gradient(circle at 15% 70%, #ffffff 0%, #ffffff 10px, transparent 14px),
+                radial-gradient(circle at 85% 75%, #ffffff 0%, #ffffff 8px, transparent 12px);
+            animation: cloudPixelDrift 12s steps(40) infinite;
+            image-rendering: pixelated;
+            opacity: 0.7;
+        }
+        @keyframes cloudPixelDrift { 0% { transform: translateX(-20px); } 100% { transform: translateX(20px); } }
+
+        /* Elementos decorativos estilo videogame */
+        .game-decorations {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background:
+                radial-gradient(circle at 10% 30%, #ffff00 0%, #ffff00 3px, transparent 4px),
+                radial-gradient(circle at 90% 40%, #ff6600 0%, #ff6600 3px, transparent 4px),
+                radial-gradient(circle at 30% 80%, #ff0066 0%, #ff0066 3px, transparent 4px),
+                radial-gradient(circle at 80% 10%, #00ff66 0%, #00ff66 3px, transparent 4px);
+            animation: decorationTwinkle 2s steps(4) infinite;
+            image-rendering: pixelated;
+        }
+        @keyframes decorationTwinkle { 0%, 100% { opacity: 0.8; } 50% { opacity: 0.4; } }
+
+        /* Rota da baleia estilo videogame (ajustada) */
+        .whale-route {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: #ffff00;
+            border: 2px solid #ffffff;
+            border-radius: 0;
+            box-shadow:
+                inset 1px 1px 0px #ffff88,
+                inset -1px -1px 0px #cc9900,
+                1px 1px 0px #000000;
+            opacity: 0;
+            image-rendering: pixelated;
+        }
+
+        /* NOVAS coordenadas de rota - posicionadas para corresponder ao mapa embutido */
+        /* point 1: Antártida (base) */
+        .route-point-1 { top: 82%; left: 48%; transform: translate(-50%,-50%); }
+        /* point 2: Atlântico Sul (travessia) */
+        .route-point-2 { top: 66%; left: 45%; transform: translate(-50%,-50%); }
+        /* point 3: entrada litoral brasileiro (chegada) */
+        .route-point-3 { top: 54%; left: 42%; transform: translate(-50%,-50%); }
+        /* point 4: ponto de berçário / litoral (ponto final) */
+        .route-point-4 { top: 52%; left: 38%; transform: translate(-50%,-50%); }
+
+        /* Baleia animada no globo */
+        .globe-whale {
+            position: absolute;
+            font-size: 2.2rem;
+            z-index: 10;
+            filter: drop-shadow(2px 2px 0px #0066cc);
+            transition: all 2s ease-in-out;
+            top: 82%;
+            left: 48%;
+            transform: translate(-50%,-50%) rotate(0deg);
+        }
+
+        /* Animações da rota estilo videogame (ajustadas para as novas coordenadas) */
+        @keyframes routeGlow {
+            0%, 100% {
+                opacity: 0.8;
+                transform: scale(1);
+                background: #ffff00;
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.3);
+                background: #ffffff;
+            }
+        }
+
+        /* animações sequenciais que movem a baleia entre pontos - agora por transform */
+        @keyframes whaleToPoint2 {
+            0% { transform: translate(-50%,-50%) rotate(0deg); top:82%; left:48%; }
+            100% { transform: translate(-50%,-50%) rotate(-15deg); top:66%; left:45%; }
+        }
+        @keyframes whaleToPoint3 {
+            0% { transform: translate(-50%,-50%) rotate(-15deg); top:66%; left:45%; }
+            100% { transform: translate(-50%,-50%) rotate(-25deg); top:54%; left:42%; }
+        }
+        @keyframes whaleToPoint4 {
+            0% { transform: translate(-50%,-50%) rotate(-25deg); top:54%; left:42%; }
+            100% { transform: translate(-50%,-50%) rotate(-30deg); top:52%; left:38%; }
+        }
+
+        /* Efeitos de partículas */
+        .migration-particles {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: #00ffff;
+            border-radius: 50%;
+            animation: particleFloat 4s linear infinite;
+        }
+        @keyframes particleFloat {
+            0% { opacity: 0; transform: translateY(20px) scale(0); }
+            20% { opacity: 1; transform: translateY(0) scale(1); }
+            80% { opacity: 1; transform: translateY(-20px) scale(1); }
+            100% { opacity: 0; transform: translateY(-40px) scale(0); }
+        }
+
+        @media (max-width: 600px) {
+            .globe-animation { width: 95vw; height: 50vh; min-height: 300px; }
+        }
+
+        /* Tela final */
+        .end-screen { display: none; text-align: center; color: white; max-width: 600px; }
+        .end-content {
+            background: #1a1a3a;
+            padding: 30px;
+            border: 3px solid #00ffff;
+            border-radius: 0;
+            box-shadow: inset 0 0 20px rgba(0,255,255,0.3);
+        }
+        .end-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #00ffff;
+            text-shadow: 2px 2px 0px #0066cc;
+            animation: titleGlow 2s ease-in-out infinite alternate;
+        }
+        .end-message { font-size: 0.7rem; line-height: 1.8; margin-bottom: 30px; color: #ffffff; }
+        .restart-btn {
+            background: #ff6600; color: #ffffff; border: 3px solid #ffaa00; padding: 12px 25px;
+            font-size: 0.8rem; font-family: 'Press Start 2P', monospace; border-radius: 0; cursor: pointer;
+            transition: all 0.1s ease; box-shadow: 3px 3px 0px #cc4400; text-transform: uppercase;
+        }
+        .restart-btn:hover { background: #ffaa00; transform: translate(1px, 1px); box-shadow: 2px 2px 0px #cc4400; }
+    </style>
+</head>
+<body>
+    <!-- Efeitos de fundo -->
+    <div class="bubbles" id="bubbles"></div>
+    <div class="waves"></div>
+
+    <div class="container">
+        <!-- Tela inicial -->
+        <div class="start-screen" id="startScreen">
+            <h1>🐋 Rota da Baleia-Jubarte</h1>
+            <div class="whale-icon">🐋</div>
+            <div class="start-description">
+                Embarque numa jornada épica através dos oceanos! Ajude uma baleia-jubarte a completar sua migração de 25.000 km, do gélido Oceano Antártico até as águas tropicais do Brasil.
+                <br><br>
+                Responda perguntas sobre ecologia marinha e guie nossa amiga cetácea em sua busca por reprodução e alimento.
+            </div>
+            <button class="start-btn" onclick="startGame()">🌊 Iniciar Jornada</button>
+        </div>
+
+        <!-- Tela do jogo -->
+        <div class="game-screen" id="gameScreen">
+            <div class="game-header">
+                <div class="phase-title" id="phaseTitle">Antártida - Águas Geladas</div>
+                <div class="progress-container">
+                    <div class="progress-bar" id="progressBar" style="width: 0%">
+                        <div class="whale-progress">🐋</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="question-container">
+                <div class="question" id="question"></div>
+                <div class="options" id="options"></div>
+                <div class="feedback" id="feedback"></div>
+            </div>
+        </div>
+
+        <!-- Tela de narrativa -->
+        <div class="narrative-screen" id="narrativeScreen">
+            <div class="narrative-content">
+                <div class="narrative-title" id="narrativeTitle"></div>
+
+                <!-- Mapa-múndi pixelado embutido -->
+                <div class="globe-animation" id="globeAnimation">
+                    <div class="globe-content">
+                        <!-- Elementos decorativos -->
+                        <div class="game-decorations"></div>
+                        <!-- Nuvens pixelizadas -->
+                        <div class="clouds"></div>
+
+                        <!-- Pontos da rota (visíveis durante a animação) -->
+                        <div class="whale-route route-point-1" id="routePoint1"></div>
+                        <div class="whale-route route-point-2" id="routePoint2"></div>
+                        <div class="whale-route route-point-3" id="routePoint3"></div>
+                        <div class="whale-route route-point-4" id="routePoint4"></div>
+
+                        <!-- Baleia animada -->
+                        <div class="globe-whale" id="globeWhale">🐋</div>
+
+                        <!-- Partículas de migração -->
+                        <div class="migration-particles" style="top: 78%; left: 49%; animation-delay: 0s;"></div>
+                        <div class="migration-particles" style="top: 70%; left: 47%; animation-delay: 1s;"></div>
+                        <div class="migration-particles" style="top: 60%; left: 45%; animation-delay: 2s;"></div>
+                        <div class="migration-particles" style="top: 54%; left: 43%; animation-delay: 3s;"></div>
+                    </div>
+                </div>
+
+                <div class="narrative-text" id="narrativeText"></div>
+                <button class="next-btn" onclick="continueGame()">Continuar Jornada 🌊</button>
+            </div>
+        </div>
+
+        <!-- Tela final -->
+        <div class="end-screen" id="endScreen">
+            <div class="end-content">
+                <div class="end-title">🎉 Jornada Completa!</div>
+                <div class="whale-icon">🐋💙</div>
+                <div class="end-message">
+                    "As baleias percorrem milhares de quilômetros em busca de equilíbrio. Proteger os oceanos é proteger a vida."
+                    <br><br>
+                    Parabéns! Você ajudou nossa baleia-jubarte a completar sua migração épica. Cada ano, esses magníficos animais fazem essa jornada, enfrentando desafios climáticos e ambientais.
+                </div>
+                <button class="restart-btn" onclick="restartGame()">🔄 Nova Jornada</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentPhase = 0;
+        let currentQuestion = 0;
+        let correctAnswers = 0;
+        let totalProgress = 0;
+
+        const phases = [
+            {
+                title: "Antártida - Águas Geladas",
+                description: "Nossa jornada começa nas águas geladas do Oceano Antártico, onde as baleias se alimentam de krill durante o verão austral.",
+                background: "linear-gradient(180deg, #1e3c72 0%, #2a5298 50%, #4a90e2 100%)",
+                questions: [
+                    {
+                        question: "Por que as baleias-jubarte migram da Antártida?",
+                        options: [
+                            "Para fugir dos predadores",
+                            "Para se reproduzir em águas mais quentes",
+                            "Para encontrar peixes maiores",
+                            "Para evitar tempestades"
+                        ],
+                        correct: 1,
+                        explanation: "Correto! As baleias migram para águas tropicais para se reproduzir e dar à luz, pois os filhotes nascem sem gordura suficiente para sobreviver no frio antártico."
+                    },
+                    {
+                        question: "Qual é o principal alimento das baleias-jubarte na Antártida?",
+                        options: [
+                            "Peixes grandes",
+                            "Lulas",
+                            "Krill (pequenos crustáceos)",
+                            "Algas marinhas"
+                        ],
+                        correct: 2,
+                        explanation: "Exato! O krill são pequenos crustáceos ricos em nutrientes que formam a base da dieta das baleias-jubarte nas águas antárticas."
+                    }
+                ]
+            },
+            {
+                title: "Atlântico Sul - A Grande Travessia",
+                description: "Agora nossa baleia enfrenta a longa jornada pelo Atlântico Sul, nadando milhares de quilômetros sem se alimentar.",
+                background: "linear-gradient(180deg, #2a5298 0%, #4a90e2 50%, #87ceeb 100%)",
+                questions: [
+                    {
+                        question: "Durante a migração, as baleias-jubarte:",
+                        options: [
+                            "Comem constantemente para manter energia",
+                            "Jejuam por meses, vivendo de suas reservas de gordura",
+                            "Caçam peixes pequenos pelo caminho",
+                            "Param em ilhas para descansar"
+                        ],
+                        correct: 1,
+                        explanation: "Correto! Durante a migração, as baleias podem jejuar por até 8 meses, sobrevivendo apenas das reservas de gordura acumuladas na Antártida."
+                    },
+                    {
+                        question: "Quantos quilômetros aproximadamente as baleias-jubarte percorrem em sua migração completa?",
+                        options: [
+                            "5.000 km",
+                            "15.000 km",
+                            "25.000 km",
+                            "35.000 km"
+                        ],
+                        correct: 2,
+                        explanation: "Impressionante! As baleias-jubarte fazem uma das maiores migrações do reino animal, percorrendo até 25.000 km ida e volta."
+                    }
+                ]
+            },
+            {
+                title: "Litoral Brasileiro - Berçário Natural",
+                description: "Chegamos às águas quentes do litoral brasileiro! Aqui as baleias se reproduzem e os filhotes nascem em segurança.",
+                background: "linear-gradient(180deg, #4a90e2 0%, #87ceeb 50%, #b0e0e6 100%)",
+                questions: [
+                    {
+                        question: "Por que o litoral brasileiro é ideal para o nascimento dos filhotes?",
+                        options: [
+                            "Tem muito alimento disponível",
+                            "As águas são mais quentes e calmas",
+                            "Não há predadores",
+                            "É mais próximo da Antártida"
+                        ],
+                        correct: 1,
+                        explanation: "Perfeito! As águas tropicais brasileiras são mais quentes e geralmente mais calmas, oferecendo condições ideais para o nascimento e primeiros meses de vida dos filhotes."
+                    },
+                    {
+                        question: "Qual é o período de gestação das baleias-jubarte?",
+                        options: [
+                            "6 meses",
+                            "9 meses",
+                            "11-12 meses",
+                            "18 meses"
+                        ],
+                        correct: 2,
+                        explanation: "Correto! A gestação dura cerca de 11-12 meses, e os filhotes nascem medindo aproximadamente 4-5 metros de comprimento."
+                    }
+                ]
+            },
+            {
+                title: "Retorno ao Sul - Ciclo Completo",
+                description: "Com os filhotes já crescidos, é hora de retornar às águas ricas em alimento da Antártida, completando o ciclo migratório.",
+                background: "linear-gradient(180deg, #87ceeb 0%, #4a90e2 50%, #2a5298 100%)",
+                questions: [
+                    {
+                        question: "O que mais ameaça as baleias-jubarte atualmente?",
+                        options: [
+                            "Predadores naturais",
+                            "Mudanças climáticas e poluição dos oceanos",
+                            "Falta de alimento",
+                            "Doenças"
+                        ],
+                        correct: 1,
+                        explanation: "Infelizmente correto. As mudanças climáticas, poluição por plásticos, ruído dos navios e colisões são as principais ameaças modernas às baleias."
+                    },
+                    {
+                        question: "Como podemos ajudar na conservação das baleias-jubarte?",
+                        options: [
+                            "Reduzir o uso de plásticos",
+                            "Apoiar áreas marinhas protegidas",
+                            "Escolher turismo responsável",
+                            "Todas as alternativas anteriores"
+                        ],
+                        correct: 3,
+                        explanation: "Excelente! Todas essas ações são importantes para proteger as baleias e seus habitats. Cada pequena ação faz diferença na conservação marinha."
+                    }
+                ]
+            }
+        ];
+
+        const narratives = [
+            {
+                title: "Partindo das Águas Geladas",
+                text: "Nossa baleia deixa as águas ricas em krill da Antártida. Com suas reservas de gordura acumuladas, ela inicia a jornada mais longa de sua vida. O instinto ancestral a guia rumo ao norte, em busca das águas tropicais onde poderá se reproduzir."
+            },
+            {
+                title: "Atravessando o Atlântico",
+                text: "Milhares de quilômetros já foram percorridos. Nossa baleia nada incansavelmente, seguindo correntes oceânicas e marcos magnéticos. Sem se alimentar há meses, ela depende totalmente de suas reservas energéticas para continuar a jornada."
+            },
+            {
+                title: "Chegada ao Paraíso Tropical",
+                text: "As águas brasileiras recebem nossa viajante! Aqui, em águas mais quentes e protegidas, ela encontrará parceiros para reprodução. Este é o berçário natural onde os filhotes nascerão, protegidos do frio polar."
+            }
+        ];
+
+        function createBubbles() {
+            const bubblesContainer = document.getElementById('bubbles');
+            for (let i = 0; i < 20; i++) {
+                const bubble = document.createElement('div');
+                bubble.className = 'bubble';
+                bubble.style.left = Math.random() * 100 + '%';
+                bubble.style.width = bubble.style.height = Math.random() * 20 + 10 + 'px';
+                bubble.style.animationDelay = Math.random() * 6 + 's';
+                bubble.style.animationDuration = (Math.random() * 3 + 3) + 's';
+                bubblesContainer.appendChild(bubble);
+            }
+        }
+
+        function startGame() {
+            document.getElementById('startScreen').style.display = 'none';
+            document.getElementById('gameScreen').style.display = 'block';
+            currentPhase = 0;
+            currentQuestion = 0;
+            correctAnswers = 0;
+            totalProgress = 0;
+            loadQuestion();
+            updateBackground();
+        }
+
+        function loadQuestion() {
+            const phase = phases[currentPhase];
+            const question = phase.questions[currentQuestion];
+
+            document.getElementById('phaseTitle').textContent = phase.title;
+            document.getElementById('question').textContent = question.question;
+
+            const optionsContainer = document.getElementById('options');
+            optionsContainer.innerHTML = '';
+
+            question.options.forEach((option, index) => {
+                const optionElement = document.createElement('div');
+                optionElement.className = 'option';
+                optionElement.textContent = option;
+                optionElement.onclick = () => selectAnswer(index);
+                optionsContainer.appendChild(optionElement);
+            });
+
+            document.getElementById('feedback').style.display = 'none';
+        }
+
+        function selectAnswer(selectedIndex) {
+            const phase = phases[currentPhase];
+            const question = phase.questions[currentQuestion];
+            const options = document.querySelectorAll('.option');
+            const feedback = document.getElementById('feedback');
+
+            // Desabilitar cliques
+            options.forEach(option => option.style.pointerEvents = 'none');
+
+            if (selectedIndex === question.correct) {
+                options[selectedIndex].classList.add('correct');
+                feedback.className = 'feedback correct';
+                feedback.textContent = question.explanation;
+                correctAnswers++;
+                totalProgress += 12.5; // 100% / 8 questions total
+
+                setTimeout(() => {
+                    updateProgress();
+                    nextQuestion();
+                }, 2000);
+            } else {
+                options[selectedIndex].classList.add('incorrect');
+                options[question.correct].classList.add('correct');
+                feedback.className = 'feedback incorrect';
+                feedback.textContent = question.explanation + " Tente novamente!";
+
+                setTimeout(() => {
+                    // Reset options
+                    options.forEach(option => {
+                        option.classList.remove('correct', 'incorrect');
+                        option.style.pointerEvents = 'auto';
+                    });
+                    feedback.style.display = 'none';
+                }, 3000);
+            }
+
+            feedback.style.display = 'block';
+        }
+
+        function updateProgress() {
+            const progressBar = document.getElementById('progressBar');
+            progressBar.style.width = totalProgress + '%';
+        }
+
+        function nextQuestion() {
+            currentQuestion++;
+
+            if (currentQuestion >= phases[currentPhase].questions.length) {
+                // Fim da fase
+                if (currentPhase < phases.length - 1) {
+                    showNarrative();
+                } else {
+                    showEndScreen();
+                }
+            } else {
+                setTimeout(() => {
+                    loadQuestion();
+                }, 1000);
+            }
+        }
+
+        function showNarrative() {
+            document.getElementById('gameScreen').style.display = 'none';
+            document.getElementById('narrativeScreen').style.display = 'block';
+
+            const narrative = narratives[currentPhase];
+            document.getElementById('narrativeTitle').textContent = narrative.title;
+            document.getElementById('narrativeText').textContent = narrative.text;
+
+            // Iniciar animação do globo
+            startGlobeAnimation();
+        }
+
+        function startGlobeAnimation() {
+            const whale = document.getElementById('globeWhale');
+            const routePoints = [
+                document.getElementById('routePoint1'),
+                document.getElementById('routePoint2'),
+                document.getElementById('routePoint3'),
+                document.getElementById('routePoint4')
+            ];
+
+            // Reset posição da baleia para Antártida (base)
+            whale.style.top = '82%';
+            whale.style.left = '48%';
+            whale.style.transform = 'translate(-50%,-50%) rotate(0deg)';
+            whale.style.animation = 'none';
+
+            // Reset pontos da rota
+            routePoints.forEach(point => {
+                point.style.opacity = '0';
+                point.style.animation = 'none';
+            });
+
+            // Animação sequencial baseada na fase atual
+            setTimeout(() => {
+                animateWhaleRoute(currentPhase);
+            }, 500);
+        }
+
+        function animateWhaleRoute(phase) {
+            const whale = document.getElementById('globeWhale');
+            const routePoints = [
+                document.getElementById('routePoint1'),
+                document.getElementById('routePoint2'),
+                document.getElementById('routePoint3'),
+                document.getElementById('routePoint4')
+            ];
+
+            // Mostrar pontos da rota progressivamente (até a fase atual)
+            for (let i = 0; i <= phase; i++) {
+                setTimeout(() => {
+                    if (routePoints[i]) {
+                        routePoints[i].style.opacity = '1';
+                        routePoints[i].style.animation = 'routeGlow 1.6s ease-in-out infinite';
+                    }
+                }, i * 350);
+            }
+
+            // Animar baleia até o ponto atual com keyframes ajustados
+            setTimeout(() => {
+                switch(phase) {
+                    case 0:
+                        // já na base: leve bob para indicar chegada
+                        whale.style.animation = 'pixelBob 1s steps(2) infinite';
+                        break;
+                    case 1:
+                        // Antártida -> Atlântico Sul
+                        whale.style.animation = 'whaleToPoint2 1800ms ease-in-out forwards';
+                        break;
+                    case 2:
+                        // Atlântico Sul -> entrada litoral brasileiro
+                        whale.style.animation = 'whaleToPoint2 1200ms ease-in-out forwards, whaleToPoint3 1200ms ease-in-out 1200ms forwards';
+                        break;
+                    case 3:
+                        // chegada no berçário (ponto final)
+                        whale.style.animation = 'whaleToPoint2 900ms ease-in-out forwards, whaleToPoint3 900ms ease-in-out 900ms forwards, whaleToPoint4 900ms ease-in-out 1800ms forwards';
+                        break;
+                }
+            }, 500 + (phase * 300));
+
+            // Efeito de pulsação na baleia após animação
+            setTimeout(() => {
+                // concatena animação sem sobrescrever (se houver)
+                const existing = whale.style.animation || '';
+                whale.style.animation = existing + (existing ? ', ' : '') + 'pixelBob 1s steps(2) infinite';
+            }, 2500);
+        }
+
+        function continueGame() {
+            currentPhase++;
+            currentQuestion = 0;
+
+            document.getElementById('narrativeScreen').style.display = 'none';
+            document.getElementById('gameScreen').style.display = 'block';
+
+            updateBackground();
+            loadQuestion();
+        }
+
+        function updateBackground() {
+            if (phases[currentPhase]) {
+                document.body.style.background = phases[currentPhase].background;
+            }
+        }
+
+        function showEndScreen() {
+            document.getElementById('gameScreen').style.display = 'none';
+            document.getElementById('endScreen').style.display = 'block';
+        }
+
+        function restartGame() {
+            document.getElementById('endScreen').style.display = 'none';
+            document.getElementById('startScreen').style.display = 'block';
+
+            // Reset game state
+            currentPhase = 0;
+            currentQuestion = 0;
+            correctAnswers = 0;
+            totalProgress = 0;
+
+            // Reset progress bar
+            document.getElementById('progressBar').style.width = '0%';
+
+            // Reset background
+            document.body.style.background = 'linear-gradient(180deg, #1e3c72 0%, #2a5298 50%, #4a90e2 100%)';
+        }
+
+        // Initialize bubbles on load
+        createBubbles();
+    </script>
+</body>
+</html><!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Rota da Baleia-Jubarte</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+        body {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Press Start 2P', monospace;
+            background: #0f0f23;
+            min-height: 100%;
+            overflow-x: hidden;
+            position: relative;
+            image-rendering: pixelated;
+        }
+
+        html { height: 100%; }
+
+        /* Efeito de pixels flutuantes */
+        .bubbles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+        .bubble {
+            position: absolute;
+            background: #00ffff;
+            width: 4px;
+            height: 4px;
+            border-radius: 0;
+            animation: pixelFloat 4s infinite linear;
+            box-shadow: 0 0 2px #00ffff;
+        }
+        @keyframes pixelFloat {
+            0% { transform: translateY(100vh); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-50px); opacity: 0; }
+        }
+
+        /* Fundo pixelizado */
+        .waves {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            background: repeating-linear-gradient(
+                90deg,
+                #1a1a3a 0px,
+                #1a1a3a 8px,
+                #2a2a4a 8px,
+                #2a2a4a 16px
+            );
+            animation: pixelScroll 2s linear infinite;
+            z-index: 1;
+        }
+        @keyframes pixelScroll { 0% { transform: translateX(0); } 100% { transform: translateX(16px); } }
+
+        .container {
+            position: relative;
+            z-index: 10;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        /* Tela inicial */
+        .start-screen {
+            text-align: center;
+            color: white;
+            max-width: 600px;
+        }
+        .start-screen h1 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            color: #00ffff;
+            text-shadow: 2px 2px 0px #0066cc, 4px 4px 0px #003366;
+            animation: titleGlow 2s ease-in-out infinite alternate;
+            letter-spacing: 2px;
+        }
+        @keyframes titleGlow {
+            0% { color: #00ffff; text-shadow: 2px 2px 0px #0066cc, 4px 4px 0px #003366; }
+            100% { color: #66ffff; text-shadow: 2px 2px 0px #0088ff, 4px 4px 0px #004488; }
+        }
+
+        .whale-icon {
+            font-size: 4rem;
+            margin: 20px 0;
+            animation: pixelSwim 1s steps(2) infinite;
+            filter: drop-shadow(2px 2px 0px #0066cc);
+        }
+        @keyframes pixelSwim { 0% { transform: translateX(0); } 50% { transform: translateX(4px); } 100% { transform: translateX(0); } }
+
+        .start-description {
+            font-size: 0.7rem;
+            line-height: 1.8;
+            margin-bottom: 30px;
+            background: #1a1a3a;
+            padding: 20px;
+            border: 3px solid #00ffff;
+            border-radius: 0;
+            color: #ffffff;
+            box-shadow: inset 0 0 10px rgba(0,255,255,0.2);
+        }
+
+        .start-btn {
+            background: #ff6600;
+            color: #ffffff;
+            border: 3px solid #ffaa00;
+            padding: 15px 30px;
+            font-size: 0.8rem;
+            font-family: 'Press Start 2P', monospace;
+            border-radius: 0;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            box-shadow: 4px 4px 0px #cc4400;
+            text-transform: uppercase;
+        }
+        .start-btn:hover { background: #ffaa00; transform: translate(2px, 2px); box-shadow: 2px 2px 0px #cc4400; }
+        .start-btn:active { transform: translate(4px, 4px); box-shadow: 0px 0px 0px #cc4400; }
+
+        /* Tela do jogo */
+        .game-screen {
+            display: none;
+            width: 100%;
+            max-width: 800px;
+            color: white;
+        }
+        .game-header { text-align: center; margin-bottom: 30px; }
+        .phase-title {
+            font-size: 1rem;
+            margin-bottom: 10px;
+            color: #00ffff;
+            text-shadow: 2px 2px 0px #0066cc;
+            text-align: center;
+            letter-spacing: 1px;
+        }
+        .progress-container {
+            background: #1a1a3a;
+            border: 2px solid #00ffff;
+            border-radius: 0;
+            padding: 8px;
+            margin-bottom: 20px;
+        }
+        .progress-bar {
+            background: repeating-linear-gradient(
+                90deg,
+                #00ff00 0px,
+                #00ff00 4px,
+                #00cc00 4px,
+                #00cc00 8px
+            );
+            height: 16px;
+            border-radius: 0;
+            transition: width 0.3s steps(10);
+            position: relative;
+            border: 1px solid #00aa00;
+        }
+        .whale-progress {
+            position: absolute;
+            right: -12px;
+            top: -8px;
+            font-size: 1.5rem;
+            animation: pixelBob 0.8s steps(2) infinite;
+            filter: drop-shadow(1px 1px 0px #0066cc);
+        }
+        @keyframes pixelBob { 0% { transform: translateY(0); } 50% { transform: translateY(-2px); } 100% { transform: translateY(0); } }
+
+        .question-container {
+            background: #1a1a3a;
+            border: 3px solid #00ffff;
+            border-radius: 0;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: inset 0 0 10px rgba(0,255,255,0.2);
+        }
+        .question {
+            font-size: 0.8rem;
+            margin-bottom: 25px;
+            line-height: 1.6;
+            color: #ffffff;
+            text-align: center;
+        }
+        .options { display: grid; gap: 15px; }
+        .option {
+            background: #2a2a4a;
+            border: 2px solid #666699;
+            color: #ffffff;
+            padding: 12px 16px;
+            border-radius: 0;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            font-size: 0.7rem;
+            font-family: 'Press Start 2P', monospace;
+            text-align: left;
+            margin-bottom: 8px;
+            box-shadow: 2px 2px 0px #1a1a3a;
+        }
+        .option:hover { background: #3a3a5a; border-color: #8888bb; transform: translate(1px, 1px); box-shadow: 1px 1px 0px #1a1a3a; }
+        .option.correct {
+            background: #00aa00;
+            border-color: #00ff00;
+            color: #ffffff;
+            animation: pixelBlink 0.5s steps(2) 3;
+        }
+        .option.incorrect {
+            background: #aa0000;
+            border-color: #ff0000;
+            color: #ffffff;
+            animation: pixelShake 0.5s steps(4) 2;
+        }
+        @keyframes pixelBlink { 0%, 100% { background: #00aa00; } 50% { background: #00ff00; } }
+        @keyframes pixelShake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-2px); } 75% { transform: translateX(2px); } }
+
+        .feedback {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 0;
+            font-size: 0.7rem;
+            line-height: 1.6;
+            display: none;
+            font-family: 'Press Start 2P', monospace;
+            border: 2px solid;
+        }
+        .feedback.correct {
+            background: #003300;
+            border-color: #00ff00;
+            color: #00ff00;
+            box-shadow: inset 0 0 10px rgba(0,255,0,0.2);
+        }
+        .feedback.incorrect {
+            background: #330000;
+            border-color: #ff0000;
+            color: #ff6666;
+            box-shadow: inset 0 0 10px rgba(255,0,0,0.2);
+        }
+
+        .next-btn {
+            background: #6600cc;
+            color: #ffffff;
+            border: 2px solid #9933ff;
+            padding: 10px 20px;
+            border-radius: 0;
+            cursor: pointer;
+            font-size: 0.7rem;
+            font-family: 'Press Start 2P', monospace;
+            margin-top: 15px;
+            transition: all 0.1s ease;
+            box-shadow: 2px 2px 0px #4400aa;
+            text-transform: uppercase;
+        }
+        .next-btn:hover { background: #9933ff; transform: translate(1px, 1px); box-shadow: 1px 1px 0px #4400aa; }
+
+        /* Tela de narrativa */
+        .narrative-screen { display: none; text-align: center; color: white; max-width: 600px; }
+        .narrative-content {
+            background: #1a1a3a;
+            padding: 25px;
+            border: 3px solid #00ffff;
+            border-radius: 0;
+            box-shadow: inset 0 0 15px rgba(0,255,255,0.2);
+            margin-bottom: 30px;
+        }
+        .narrative-title {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: #00ffff;
+            text-shadow: 2px 2px 0px #0066cc;
+            letter-spacing: 1px;
+        }
+
+        /* ===== NOVO: mapa embutido (pixel-retro) ===== */
+        /* A globe area com background em SVG embutido em base64 */
+        .globe-animation {
+            width: 95vw;
+            max-width: 900px;
+            height: 60vh;
+            min-height: 400px;
+            margin: 20px auto;
+            position: relative;
+            border: 4px solid #ffffff;
+            border-radius: 0;
+            /* svg embase64 abaixo (pixel / retrô) */
+            background: url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOTAwIiBoZWlnaHQ9IjUwMCIgdmlld0JveD0iMCAwIDkwMCA1MDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjkwMCIgaGVpZ2h0PSI1MDAiIGZpbGw9IiM1NTk5ZmYiIC8+PGcgZmlsbD0ibm9uZSIgZmlsbC1ydWxlPSJldmVub2RkIj48cmVjdCB4PSIwIiB5PSIyMCIgd2lkdGg9IjkwMCIgaGVpZ2h0PSI0NjAiIGZpbGw9IiMzMzdhZDYiIC8+PC9nPjxnIGZpbGw9IiMyMmFhMjIiIHN0cm9rZT0iIzIwMDYiIHN0cm9rZS13aWR0aD0iMSI+CiAgICA8cG9seWdvbiBwb2ludHM9IjE2MCAzNDAgMTc1IDMyMCAxOTAgMzA1IDIxNSAzMDAgMjQ1IDI4MCAyNzAgMjc1IDI5MCAyNzAgMzIxIDI3MCAzNTAgMjc1IDM3NSA0MDAgMzgwIDQyMCAzNTAgNDQwIDMxNSA0NTAgMjkwIDQ1MCAyNjAgNDQwIDIzMCA0MTAgMjAwIDM3MCAxNzAgMzQwIiAvPgogICAgPHBvbHlnb24gcG9pbnRzPSI0NDAgMTIwIDQ2MCAxMDAgNDgwIDg1IDUxMCA3MCA1NDAgNjUgNTY1IDcwIDU5MCA4MCA2MjAgMTAwIDY1MCAxMzAgNjgzIDE2MCA3MDAgMTg1IDY1MCAyMDAgNjE1IDIxNSA1NzAgMjQ1IDU0MCAyNzAgNTIxIDI5MCA1MDAgMzE1IDQ3MCAzNDAgNDUwIDM3MCA0MjAgMzQwIDQ0MCAzMzAiIC8+CiAgICA8cG9seWdvbiBwb2ludHM9IjEyMCAzNjAgMTQwIDM1MCAxNjAgMzQwIDE5MCAzMjAgMjE1IDMxMCAyNTAgMzAwIDI3NSAyODAgMjk1IDI4MCAzMjAgMjgwIDM1NSAyNjAgMzcwIDIyMCAzODYgMTkwIDM5MCAxNzAiIC8+CiAgICA8cG9seWdvbiBwb2ludHM9IjgwMCAzNDAgNzgwIDM1MCA3NTAgMzcwIDczMCAzODAgNzAwIDM5MCA2NzAgNDAwIDY1MCA0MDUgNjIwIDQxNSA1ODAgNDMwIDU1MCA0NDAgNTMwIDQ1MCA1MDAgNDcwIDQ3MCA0NTAgNDUwIDQyMCIgLz4KICAgIDxwYXRoIGQ9Ik0yODAgNTAiIGZpbGw9IiMyMmFhMjIiIC8+CiAgPC9nPjxwYXRoIGQ9Ik0wIDQ2MGMwIDAgMTEwLTIwIDMwMC0yMGMxOTAgMCAzMDAgMjAgMzAwIDIwIiBmaWxsPSIjZmZmIiBvcGFjaXR5PSIuMDIiIC8+PHRleHQgeD0iMTAwIiB5PSI0NzAiIGZvbnQtc2l6ZT0iMTRweCIgZmlsbD0iI2ZmZiI+Um90YSBkYSBCYWxlaWEtSnViYXJ0ZTwvdGV4dD48L3N2Zz4=") center/cover no-repeat;
+            overflow: hidden;
+            box-shadow:
+                0 0 20px rgba(255,255,255,0.8),
+                inset 0 0 0 2px #000000;
+            image-rendering: pixelated;
+        }
+
+        .globe-content {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+            /* background image now defined on .globe-animation to keep content centered */
+        }
+
+        /* Hide old continent element strategy (no longer used) */
+        .continent { display: none; }
+
+        /* Nuvens pixelizadas estilo videogame */
+        .clouds {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background:
+                radial-gradient(circle at 20% 15%, #ffffff 0%, #ffffff 8px, transparent 12px),
+                radial-gradient(circle at 70% 20%, #ffffff 0%, #ffffff 6px, transparent 10px),
+                radial-gradient(circle at 15% 70%, #ffffff 0%, #ffffff 10px, transparent 14px),
+                radial-gradient(circle at 85% 75%, #ffffff 0%, #ffffff 8px, transparent 12px);
+            animation: cloudPixelDrift 12s steps(40) infinite;
+            image-rendering: pixelated;
+            opacity: 0.7;
+        }
+        @keyframes cloudPixelDrift { 0% { transform: translateX(-20px); } 100% { transform: translateX(20px); } }
+
+        /* Elementos decorativos estilo videogame */
+        .game-decorations {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background:
+                radial-gradient(circle at 10% 30%, #ffff00 0%, #ffff00 3px, transparent 4px),
+                radial-gradient(circle at 90% 40%, #ff6600 0%, #ff6600 3px, transparent 4px),
+                radial-gradient(circle at 30% 80%, #ff0066 0%, #ff0066 3px, transparent 4px),
+                radial-gradient(circle at 80% 10%, #00ff66 0%, #00ff66 3px, transparent 4px);
+            animation: decorationTwinkle 2s steps(4) infinite;
+            image-rendering: pixelated;
+        }
+        @keyframes decorationTwinkle { 0%, 100% { opacity: 0.8; } 50% { opacity: 0.4; } }
+
+        /* Rota da baleia estilo videogame (ajustada) */
+        .whale-route {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: #ffff00;
+            border: 2px solid #ffffff;
+            border-radius: 0;
+            box-shadow:
+                inset 1px 1px 0px #ffff88,
+                inset -1px -1px 0px #cc9900,
+                1px 1px 0px #000000;
+            opacity: 0;
+            image-rendering: pixelated;
+        }
+
+        /* NOVAS coordenadas de rota - posicionadas para corresponder ao mapa embutido */
+        /* point 1: Antártida (base) */
+        .route-point-1 { top: 82%; left: 48%; transform: translate(-50%,-50%); }
+        /* point 2: Atlântico Sul (travessia) */
+        .route-point-2 { top: 66%; left: 45%; transform: translate(-50%,-50%); }
+        /* point 3: entrada litoral brasileiro (chegada) */
+        .route-point-3 { top: 54%; left: 42%; transform: translate(-50%,-50%); }
+        /* point 4: ponto de berçário / litoral (ponto final) */
+        .route-point-4 { top: 52%; left: 38%; transform: translate(-50%,-50%); }
+
+        /* Baleia animada no globo */
+        .globe-whale {
+            position: absolute;
+            font-size: 2.2rem;
+            z-index: 10;
+            filter: drop-shadow(2px 2px 0px #0066cc);
+            transition: all 2s ease-in-out;
+            top: 82%;
+            left: 48%;
+            transform: translate(-50%,-50%) rotate(0deg);
+        }
+
+        /* Animações da rota estilo videogame (ajustadas para as novas coordenadas) */
+        @keyframes routeGlow {
+            0%, 100% {
+                opacity: 0.8;
+                transform: scale(1);
+                background: #ffff00;
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.3);
+                background: #ffffff;
+            }
+        }
+
+        /* animações sequenciais que movem a baleia entre pontos - agora por transform */
+        @keyframes whaleToPoint2 {
+            0% { transform: translate(-50%,-50%) rotate(0deg); top:82%; left:48%; }
+            100% { transform: translate(-50%,-50%) rotate(-15deg); top:66%; left:45%; }
+        }
+        @keyframes whaleToPoint3 {
+            0% { transform: translate(-50%,-50%) rotate(-15deg); top:66%; left:45%; }
+            100% { transform: translate(-50%,-50%) rotate(-25deg); top:54%; left:42%; }
+        }
+        @keyframes whaleToPoint4 {
+            0% { transform: translate(-50%,-50%) rotate(-25deg); top:54%; left:42%; }
+            100% { transform: translate(-50%,-50%) rotate(-30deg); top:52%; left:38%; }
+        }
+
+        /* Efeitos de partículas */
+        .migration-particles {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: #00ffff;
+            border-radius: 50%;
+            animation: particleFloat 4s linear infinite;
+        }
+        @keyframes particleFloat {
+            0% { opacity: 0; transform: translateY(20px) scale(0); }
+            20% { opacity: 1; transform: translateY(0) scale(1); }
+            80% { opacity: 1; transform: translateY(-20px) scale(1); }
+            100% { opacity: 0; transform: translateY(-40px) scale(0); }
+        }
+
+        @media (max-width: 600px) {
+            .globe-animation { width: 95vw; height: 50vh; min-height: 300px; }
+        }
+
+        /* Tela final */
+        .end-screen { display: none; text-align: center; color: white; max-width: 600px; }
+        .end-content {
+            background: #1a1a3a;
+            padding: 30px;
+            border: 3px solid #00ffff;
+            border-radius: 0;
+            box-shadow: inset 0 0 20px rgba(0,255,255,0.3);
+        }
+        .end-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #00ffff;
+            text-shadow: 2px 2px 0px #0066cc;
+            animation: titleGlow 2s ease-in-out infinite alternate;
+        }
+        .end-message { font-size: 0.7rem; line-height: 1.8; margin-bottom: 30px; color: #ffffff; }
+        .restart-btn {
+            background: #ff6600; color: #ffffff; border: 3px solid #ffaa00; padding: 12px 25px;
+            font-size: 0.8rem; font-family: 'Press Start 2P', monospace; border-radius: 0; cursor: pointer;
+            transition: all 0.1s ease; box-shadow: 3px 3px 0px #cc4400; text-transform: uppercase;
+        }
+        .restart-btn:hover { background: #ffaa00; transform: translate(1px, 1px); box-shadow: 2px 2px 0px #cc4400; }
+    </style>
+</head>
+<body>
+    <!-- Efeitos de fundo -->
+    <div class="bubbles" id="bubbles"></div>
+    <div class="waves"></div>
+
+    <div class="container">
+        <!-- Tela inicial -->
+        <div class="start-screen" id="startScreen">
+            <h1>🐋 Rota da Baleia-Jubarte</h1>
+            <div class="whale-icon">🐋</div>
+            <div class="start-description">
+                Embarque numa jornada épica através dos oceanos! Ajude uma baleia-jubarte a completar sua migração de 25.000 km, do gélido Oceano Antártico até as águas tropicais do Brasil.
+                <br><br>
+                Responda perguntas sobre ecologia marinha e guie nossa amiga cetácea em sua busca por reprodução e alimento.
+            </div>
+            <button class="start-btn" onclick="startGame()">🌊 Iniciar Jornada</button>
+        </div>
+
+        <!-- Tela do jogo -->
+        <div class="game-screen" id="gameScreen">
+            <div class="game-header">
+                <div class="phase-title" id="phaseTitle">Antártida - Águas Geladas</div>
+                <div class="progress-container">
+                    <div class="progress-bar" id="progressBar" style="width: 0%">
+                        <div class="whale-progress">🐋</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="question-container">
+                <div class="question" id="question"></div>
+                <div class="options" id="options"></div>
+                <div class="feedback" id="feedback"></div>
+            </div>
+        </div>
+
+        <!-- Tela de narrativa -->
+        <div class="narrative-screen" id="narrativeScreen">
+            <div class="narrative-content">
+                <div class="narrative-title" id="narrativeTitle"></div>
+
+                <!-- Mapa-múndi pixelado embutido -->
+                <div class="globe-animation" id="globeAnimation">
+                    <div class="globe-content">
+                        <!-- Elementos decorativos -->
+                        <div class="game-decorations"></div>
+                        <!-- Nuvens pixelizadas -->
+                        <div class="clouds"></div>
+
+                        <!-- Pontos da rota (visíveis durante a animação) -->
+                        <div class="whale-route route-point-1" id="routePoint1"></div>
+                        <div class="whale-route route-point-2" id="routePoint2"></div>
+                        <div class="whale-route route-point-3" id="routePoint3"></div>
+                        <div class="whale-route route-point-4" id="routePoint4"></div>
+
+                        <!-- Baleia animada -->
+                        <div class="globe-whale" id="globeWhale">🐋</div>
+
+                        <!-- Partículas de migração -->
+                        <div class="migration-particles" style="top: 78%; left: 49%; animation-delay: 0s;"></div>
+                        <div class="migration-particles" style="top: 70%; left: 47%; animation-delay: 1s;"></div>
+                        <div class="migration-particles" style="top: 60%; left: 45%; animation-delay: 2s;"></div>
+                        <div class="migration-particles" style="top: 54%; left: 43%; animation-delay: 3s;"></div>
+                    </div>
+                </div>
+
+                <div class="narrative-text" id="narrativeText"></div>
+                <button class="next-btn" onclick="continueGame()">Continuar Jornada 🌊</button>
+            </div>
+        </div>
+
+        <!-- Tela final -->
+        <div class="end-screen" id="endScreen">
+            <div class="end-content">
+                <div class="end-title">🎉 Jornada Completa!</div>
+                <div class="whale-icon">🐋💙</div>
+                <div class="end-message">
+                    "As baleias percorrem milhares de quilômetros em busca de equilíbrio. Proteger os oceanos é proteger a vida."
+                    <br><br>
+                    Parabéns! Você ajudou nossa baleia-jubarte a completar sua migração épica. Cada ano, esses magníficos animais fazem essa jornada, enfrentando desafios climáticos e ambientais.
+                </div>
+                <button class="restart-btn" onclick="restartGame()">🔄 Nova Jornada</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentPhase = 0;
+        let currentQuestion = 0;
+        let correctAnswers = 0;
+        let totalProgress = 0;
+
+        const phases = [
+            {
+                title: "Antártida - Águas Geladas",
+                description: "Nossa jornada começa nas águas geladas do Oceano Antártico, onde as baleias se alimentam de krill durante o verão austral.",
+                background: "linear-gradient(180deg, #1e3c72 0%, #2a5298 50%, #4a90e2 100%)",
+                questions: [
+                    {
+                        question: "Por que as baleias-jubarte migram da Antártida?",
+                        options: [
+                            "Para fugir dos predadores",
+                            "Para se reproduzir em águas mais quentes",
+                            "Para encontrar peixes maiores",
+                            "Para evitar tempestades"
+                        ],
+                        correct: 1,
+                        explanation: "Correto! As baleias migram para águas tropicais para se reproduzir e dar à luz, pois os filhotes nascem sem gordura suficiente para sobreviver no frio antártico."
+                    },
+                    {
+                        question: "Qual é o principal alimento das baleias-jubarte na Antártida?",
+                        options: [
+                            "Peixes grandes",
+                            "Lulas",
+                            "Krill (pequenos crustáceos)",
+                            "Algas marinhas"
+                        ],
+                        correct: 2,
+                        explanation: "Exato! O krill são pequenos crustáceos ricos em nutrientes que formam a base da dieta das baleias-jubarte nas águas antárticas."
+                    }
+                ]
+            },
+            {
+                title: "Atlântico Sul - A Grande Travessia",
+                description: "Agora nossa baleia enfrenta a longa jornada pelo Atlântico Sul, nadando milhares de quilômetros sem se alimentar.",
+                background: "linear-gradient(180deg, #2a5298 0%, #4a90e2 50%, #87ceeb 100%)",
+                questions: [
+                    {
+                        question: "Durante a migração, as baleias-jubarte:",
+                        options: [
+                            "Comem constantemente para manter energia",
+                            "Jejuam por meses, vivendo de suas reservas de gordura",
+                            "Caçam peixes pequenos pelo caminho",
+                            "Param em ilhas para descansar"
+                        ],
+                        correct: 1,
+                        explanation: "Correto! Durante a migração, as baleias podem jejuar por até 8 meses, sobrevivendo apenas das reservas de gordura acumuladas na Antártida."
+                    },
+                    {
+                        question: "Quantos quilômetros aproximadamente as baleias-jubarte percorrem em sua migração completa?",
+                        options: [
+                            "5.000 km",
+                            "15.000 km",
+                            "25.000 km",
+                            "35.000 km"
+                        ],
+                        correct: 2,
+                        explanation: "Impressionante! As baleias-jubarte fazem uma das maiores migrações do reino animal, percorrendo até 25.000 km ida e volta."
+                    }
+                ]
+            },
+            {
+                title: "Litoral Brasileiro - Berçário Natural",
+                description: "Chegamos às águas quentes do litoral brasileiro! Aqui as baleias se reproduzem e os filhotes nascem em segurança.",
+                background: "linear-gradient(180deg, #4a90e2 0%, #87ceeb 50%, #b0e0e6 100%)",
+                questions: [
+                    {
+                        question: "Por que o litoral brasileiro é ideal para o nascimento dos filhotes?",
+                        options: [
+                            "Tem muito alimento disponível",
+                            "As águas são mais quentes e calmas",
+                            "Não há predadores",
+                            "É mais próximo da Antártida"
+                        ],
+                        correct: 1,
+                        explanation: "Perfeito! As águas tropicais brasileiras são mais quentes e geralmente mais calmas, oferecendo condições ideais para o nascimento e primeiros meses de vida dos filhotes."
+                    },
+                    {
+                        question: "Qual é o período de gestação das baleias-jubarte?",
+                        options: [
+                            "6 meses",
+                            "9 meses",
+                            "11-12 meses",
+                            "18 meses"
+                        ],
+                        correct: 2,
+                        explanation: "Correto! A gestação dura cerca de 11-12 meses, e os filhotes nascem medindo aproximadamente 4-5 metros de comprimento."
+                    }
+                ]
+            },
+            {
+                title: "Retorno ao Sul - Ciclo Completo",
+                description: "Com os filhotes já crescidos, é hora de retornar às águas ricas em alimento da Antártida, completando o ciclo migratório.",
+                background: "linear-gradient(180deg, #87ceeb 0%, #4a90e2 50%, #2a5298 100%)",
+                questions: [
+                    {
+                        question: "O que mais ameaça as baleias-jubarte atualmente?",
+                        options: [
+                            "Predadores naturais",
+                            "Mudanças climáticas e poluição dos oceanos",
+                            "Falta de alimento",
+                            "Doenças"
+                        ],
+                        correct: 1,
+                        explanation: "Infelizmente correto. As mudanças climáticas, poluição por plásticos, ruído dos navios e colisões são as principais ameaças modernas às baleias."
+                    },
+                    {
+                        question: "Como podemos ajudar na conservação das baleias-jubarte?",
+                        options: [
+                            "Reduzir o uso de plásticos",
+                            "Apoiar áreas marinhas protegidas",
+                            "Escolher turismo responsável",
+                            "Todas as alternativas anteriores"
+                        ],
+                        correct: 3,
+                        explanation: "Excelente! Todas essas ações são importantes para proteger as baleias e seus habitats. Cada pequena ação faz diferença na conservação marinha."
+                    }
+                ]
+            }
+        ];
+
+        const narratives = [
+            {
+                title: "Partindo das Águas Geladas",
+                text: "Nossa baleia deixa as águas ricas em krill da Antártida. Com suas reservas de gordura acumuladas, ela inicia a jornada mais longa de sua vida. O instinto ancestral a guia rumo ao norte, em busca das águas tropicais onde poderá se reproduzir."
+            },
+            {
+                title: "Atravessando o Atlântico",
+                text: "Milhares de quilômetros já foram percorridos. Nossa baleia nada incansavelmente, seguindo correntes oceânicas e marcos magnéticos. Sem se alimentar há meses, ela depende totalmente de suas reservas energéticas para continuar a jornada."
+            },
+            {
+                title: "Chegada ao Paraíso Tropical",
+                text: "As águas brasileiras recebem nossa viajante! Aqui, em águas mais quentes e protegidas, ela encontrará parceiros para reprodução. Este é o berçário natural onde os filhotes nascerão, protegidos do frio polar."
+            }
+        ];
+
+        function createBubbles() {
+            const bubblesContainer = document.getElementById('bubbles');
+            for (let i = 0; i < 20; i++) {
+                const bubble = document.createElement('div');
+                bubble.className = 'bubble';
+                bubble.style.left = Math.random() * 100 + '%';
+                bubble.style.width = bubble.style.height = Math.random() * 20 + 10 + 'px';
+                bubble.style.animationDelay = Math.random() * 6 + 's';
+                bubble.style.animationDuration = (Math.random() * 3 + 3) + 's';
+                bubblesContainer.appendChild(bubble);
+            }
+        }
+
+        function startGame() {
+            document.getElementById('startScreen').style.display = 'none';
+            document.getElementById('gameScreen').style.display = 'block';
+            currentPhase = 0;
+            currentQuestion = 0;
+            correctAnswers = 0;
+            totalProgress = 0;
+            loadQuestion();
+            updateBackground();
+        }
+
+        function loadQuestion() {
+            const phase = phases[currentPhase];
+            const question = phase.questions[currentQuestion];
+
+            document.getElementById('phaseTitle').textContent = phase.title;
+            document.getElementById('question').textContent = question.question;
+
+            const optionsContainer = document.getElementById('options');
+            optionsContainer.innerHTML = '';
+
+            question.options.forEach((option, index) => {
+                const optionElement = document.createElement('div');
+                optionElement.className = 'option';
+                optionElement.textContent = option;
+                optionElement.onclick = () => selectAnswer(index);
+                optionsContainer.appendChild(optionElement);
+            });
+
+            document.getElementById('feedback').style.display = 'none';
+        }
+
+        function selectAnswer(selectedIndex) {
+            const phase = phases[currentPhase];
+            const question = phase.questions[currentQuestion];
+            const options = document.querySelectorAll('.option');
+            const feedback = document.getElementById('feedback');
+
+            // Desabilitar cliques
+            options.forEach(option => option.style.pointerEvents = 'none');
+
+            if (selectedIndex === question.correct) {
+                options[selectedIndex].classList.add('correct');
+                feedback.className = 'feedback correct';
+                feedback.textContent = question.explanation;
+                correctAnswers++;
+                totalProgress += 12.5; // 100% / 8 questions total
+
+                setTimeout(() => {
+                    updateProgress();
+                    nextQuestion();
+                }, 2000);
+            } else {
+                options[selectedIndex].classList.add('incorrect');
+                options[question.correct].classList.add('correct');
+                feedback.className = 'feedback incorrect';
+                feedback.textContent = question.explanation + " Tente novamente!";
+
+                setTimeout(() => {
+                    // Reset options
+                    options.forEach(option => {
+                        option.classList.remove('correct', 'incorrect');
+                        option.style.pointerEvents = 'auto';
+                    });
+                    feedback.style.display = 'none';
+                }, 3000);
+            }
+
+            feedback.style.display = 'block';
+        }
+
+        function updateProgress() {
+            const progressBar = document.getElementById('progressBar');
+            progressBar.style.width = totalProgress + '%';
+        }
+
+        function nextQuestion() {
+            currentQuestion++;
+
+            if (currentQuestion >= phases[currentPhase].questions.length) {
+                // Fim da fase
+                if (currentPhase < phases.length - 1) {
+                    showNarrative();
+                } else {
+                    showEndScreen();
+                }
+            } else {
+                setTimeout(() => {
+                    loadQuestion();
+                }, 1000);
+            }
+        }
+
+        function showNarrative() {
+            document.getElementById('gameScreen').style.display = 'none';
+            document.getElementById('narrativeScreen').style.display = 'block';
+
+            const narrative = narratives[currentPhase];
+            document.getElementById('narrativeTitle').textContent = narrative.title;
+            document.getElementById('narrativeText').textContent = narrative.text;
+
+            // Iniciar animação do globo
+            startGlobeAnimation();
+        }
+
+        function startGlobeAnimation() {
+            const whale = document.getElementById('globeWhale');
+            const routePoints = [
+                document.getElementById('routePoint1'),
+                document.getElementById('routePoint2'),
+                document.getElementById('routePoint3'),
+                document.getElementById('routePoint4')
+            ];
+
+            // Reset posição da baleia para Antártida (base)
+            whale.style.top = '82%';
+            whale.style.left = '48%';
+            whale.style.transform = 'translate(-50%,-50%) rotate(0deg)';
+            whale.style.animation = 'none';
+
+            // Reset pontos da rota
+            routePoints.forEach(point => {
+                point.style.opacity = '0';
+                point.style.animation = 'none';
+            });
+
+            // Animação sequencial baseada na fase atual
+            setTimeout(() => {
+                animateWhaleRoute(currentPhase);
+            }, 500);
+        }
+
+        function animateWhaleRoute(phase) {
+            const whale = document.getElementById('globeWhale');
+            const routePoints = [
+                document.getElementById('routePoint1'),
+                document.getElementById('routePoint2'),
+                document.getElementById('routePoint3'),
+                document.getElementById('routePoint4')
+            ];
+
+            // Mostrar pontos da rota progressivamente (até a fase atual)
+            for (let i = 0; i <= phase; i++) {
+                setTimeout(() => {
+                    if (routePoints[i]) {
+                        routePoints[i].style.opacity = '1';
+                        routePoints[i].style.animation = 'routeGlow 1.6s ease-in-out infinite';
+                    }
+                }, i * 350);
+            }
+
+            // Animar baleia até o ponto atual com keyframes ajustados
+            setTimeout(() => {
+                switch(phase) {
+                    case 0:
+                        // já na base: leve bob para indicar chegada
+                        whale.style.animation = 'pixelBob 1s steps(2) infinite';
+                        break;
+                    case 1:
+                        // Antártida -> Atlântico Sul
+                        whale.style.animation = 'whaleToPoint2 1800ms ease-in-out forwards';
+                        break;
+                    case 2:
+                        // Atlântico Sul -> entrada litoral brasileiro
+                        whale.style.animation = 'whaleToPoint2 1200ms ease-in-out forwards, whaleToPoint3 1200ms ease-in-out 1200ms forwards';
+                        break;
+                    case 3:
+                        // chegada no berçário (ponto final)
+                        whale.style.animation = 'whaleToPoint2 900ms ease-in-out forwards, whaleToPoint3 900ms ease-in-out 900ms forwards, whaleToPoint4 900ms ease-in-out 1800ms forwards';
+                        break;
+                }
+            }, 500 + (phase * 300));
+
+            // Efeito de pulsação na baleia após animação
+            setTimeout(() => {
+                // concatena animação sem sobrescrever (se houver)
+                const existing = whale.style.animation || '';
+                whale.style.animation = existing + (existing ? ', ' : '') + 'pixelBob 1s steps(2) infinite';
+            }, 2500);
+        }
+
+        function continueGame() {
+            currentPhase++;
+            currentQuestion = 0;
+
+            document.getElementById('narrativeScreen').style.display = 'none';
+            document.getElementById('gameScreen').style.display = 'block';
+
+            updateBackground();
+            loadQuestion();
+        }
+
+        function updateBackground() {
+            if (phases[currentPhase]) {
+                document.body.style.background = phases[currentPhase].background;
+            }
+        }
+
+        function showEndScreen() {
+            document.getElementById('gameScreen').style.display = 'none';
+            document.getElementById('endScreen').style.display = 'block';
+        }
+
+        function restartGame() {
+            document.getElementById('endScreen').style.display = 'none';
+            document.getElementById('startScreen').style.display = 'block';
+
+            // Reset game state
+            currentPhase = 0;
+            currentQuestion = 0;
+            correctAnswers = 0;
+            totalProgress = 0;
+
+            // Reset progress bar
+            document.getElementById('progressBar').style.width = '0%';
+
+            // Reset background
+            document.body.style.background = 'linear-gradient(180deg, #1e3c72 0%, #2a5298 50%, #4a90e2 100%)';
+        }
+
+        // Initialize bubbles on load
+        createBubbles();
+    </script>
+</body>
+</html>
